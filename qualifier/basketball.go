@@ -82,7 +82,6 @@ func Play(N, M, P int, allPlayers []*Player) {
 					}
 				}
 
-				// fmt.Printf("Switching %s with %s\n", allPlayers[highestTimePlayedIndex].Name, allPlayers[lowestTimePlayedIndex].Name)
 				// switch off court guy with the on court guy
 				allPlayers[lowestTimePlayedIndex].OnCourt = true
 				allPlayers[highestTimePlayedIndex].OnCourt = false
@@ -133,7 +132,6 @@ func Run(r io.Reader) [][]string {
 func main() {
 	answers := Run(os.Stdin)
 	for a, ans := range answers {
-		fmt.Printf("Case #%d: %s\n", a+1, ans)
+		fmt.Printf("Case #%d: %s\n", a+1, strings.Join(ans, " "))
 	}
-
 }
