@@ -12,9 +12,13 @@ import (
 )
 
 type Player struct {
-	Name       string
-	Percentage int
-	Height     int
+	Name            string
+	Percentage      int
+	Height          int
+	Draft           int
+	Time            int
+	TotalTimePlayed int
+	OnCourt         bool
 }
 
 type Players []*Player
@@ -33,17 +37,63 @@ func getInt(s string) int {
 	return int(n)
 }
 
-func PlayersOnCourt(N, M, P int, allPlayers []*Player) (players []*Player) {
+func Play(N, M, P int, allPlayers []*Player) {
 	sort.Sort(Players(allPlayers))
+
+	// initialize player times and draft numbers
 	for p := range allPlayers {
-		fmt.Println(allPlayers[p])
+		allPlayers[p].Draft = p + 1
+		allPlayers[p].Time = 0
+		if p < P*2 {
+			allPlayers[p].OnCourt = true
+		} else {
+			allPlayers[p].OnCourt = false
+		}
 	}
-	fmt.Println("=============")
-	return players
+
+	if P*2 < N {
+		// for every time point
+		for m := 0; m < M; m += 1 {
+
+			for team := 0; team < 2; team += 1 {
+				lowestTimePlayedIndex := team
+				highestTimePlayedIndex := team
+
+				// for every player
+				for p := team; p < N; p += 2 {
+					if allPlayers[p].OnCourt {
+						// increase times for everyone on the court
+						allPlayers[p].Time += 1
+						allPlayers[p].TotalTimePlayed += 1
+
+						// on court
+						if allPlayers[p].Time >= allPlayers[highestTimePlayedIndex].Time {
+							if allPlayers[p].Time > allPlayers[highestTimePlayedIndex].Time || allPlayers[p].Draft > allPlayers[highestTimePlayedIndex].Draft {
+								highestTimePlayedIndex = p
+							}
+						}
+					} else {
+						// off court
+						if allPlayers[p].TotalTimePlayed <= allPlayers[lowestTimePlayedIndex].TotalTimePlayed {
+							if allPlayers[p].TotalTimePlayed < allPlayers[lowestTimePlayedIndex].TotalTimePlayed || allPlayers[p].Draft < allPlayers[highestTimePlayedIndex].Draft {
+								lowestTimePlayedIndex = p
+							}
+						}
+					}
+				}
+
+				// fmt.Printf("Switching %s with %s\n", allPlayers[highestTimePlayedIndex].Name, allPlayers[lowestTimePlayedIndex].Name)
+				// switch off court guy with the on court guy
+				allPlayers[lowestTimePlayedIndex].OnCourt = true
+				allPlayers[highestTimePlayedIndex].OnCourt = false
+			}
+
+		}
+	}
 }
 
-func Run(r io.Reader) [][]*Player {
-	answers := [][]*Player{}
+func Run(r io.Reader) [][]string {
+	answers := [][]string{}
 	scanner := bufio.NewScanner(r)
 
 	// read number of cases
@@ -60,10 +110,18 @@ func Run(r io.Reader) [][]*Player {
 		for l := 0; l < N; l++ {
 			scanner.Scan()
 			line := strings.Split(scanner.Text(), " ")
-			allPlayers = append(allPlayers, &Player{line[0], getInt(line[1]), getInt(line[2])})
+			allPlayers = append(allPlayers, &Player{line[0], getInt(line[1]), getInt(line[2]), 0, 0, 0, false})
 		}
-		players := PlayersOnCourt(N, M, P, allPlayers)
-		answers = append(answers, players)
+
+		Play(N, M, P, allPlayers)
+		onCourt := []string{}
+		for p := range allPlayers {
+			if allPlayers[p].OnCourt {
+				onCourt = append(onCourt, allPlayers[p].Name)
+			}
+		}
+		sort.Strings(onCourt)
+		answers = append(answers, onCourt)
 	}
 
 	if err := scanner.Err(); err != nil {
