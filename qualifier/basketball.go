@@ -130,6 +130,7 @@ func Run(r io.Reader) [][]string {
 }
 
 func main() {
+        // Note: this currently has a bug and fails in some test cases - still have to find out why!
 	answers := Run(os.Stdin)
 	for a, ans := range answers {
 		fmt.Printf("Case #%d: %s\n", a+1, strings.Join(ans, " "))
